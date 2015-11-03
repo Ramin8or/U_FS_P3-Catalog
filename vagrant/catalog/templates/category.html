@@ -1,0 +1,14 @@
+{% extends "main.html" %}
+{% block content %}
+	
+<div class="row">
+  {% include "catdrop.html" %}
+  <div class="col-xs-9">
+  	<h2>{{category.name}} ({{count}} Items)</h2>
+	{% if items !=[] %}	
+	{% include "itemthumb.html" %}
+	{% endif %}
+  </div>
+</div>
+
+{% endblock %}
