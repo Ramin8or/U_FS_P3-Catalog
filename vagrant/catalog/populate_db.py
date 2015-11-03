@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Category, Item, User
+import random
 
 # Bind the engine to the metadata of the Base class so that the
 # declaratives can be accessed through a DBSession instance
@@ -30,14 +31,23 @@ db_session.add(staff_user)
 db_session.commit()
 
 # Add a couple of items
-item = Item(name="Antique table from 17th century", 
-            description="Like new!",price="1800.00",
-            picture="",category_id=1,user_id=1)
-db_session.add(item)
-item = Item(name="Ikea kitchen table", 
-            description="Looks like an antique table",price="18.00",
-            picture="",category_id=1,user_id=1)
-db_session.add(item)
+#TODO what if there is no file found
+lines = [x.rstrip() for x in open('item_list.txt')]
+i = 0
+for line in lines:
+    # name, description, price, cat_id, picture
+    fields = line.split(';')
+    i = i + 1
+    rand_id = random.randint(2,20)
+    rand_price = random.randint(1,1500)
+    rand_pic = random.randint(1,4)
+    item = Item(name=str(i)+fields[0], 
+                description=fields[1], 
+                price=str(rand_price)+'.00',
+                category_id=rand_id, 
+                picture=fields[4], user_id=1)
+    db_session.add(item)
+
 db_session.commit()
 
 print "Added catalog categories and items."
