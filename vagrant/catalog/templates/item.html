@@ -1,0 +1,36 @@
+{% extends "main.html" %}
+
+{% block content %}
+
+{% include "breadcrumb.html" %}
+
+{%if item.picture == "" %}
+    <img src="/static/noimage.jpg" ALT="Missing: {{item.picture}}" style="max-width: 600px; width: 100%">
+{% else %}
+    <img src="{{item.picture}}" ALT="{{item.picture}}" style="max-width: 600px; width: 100%">
+{% endif %}</p>
+
+<p>{{item.name}}</p>
+<p><b>Description: </b>{{item.description}}</p>
+<p><b>Price: ${{item.price}}</b></p> 
+<p><b>Contact: </b><i>{{item.user.email}}</i></p>
+
+{%if 'username' in session %}
+    <a class = "btn btn-default" href = "{{url_for('newItem')}}">
+        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 
+        New Post
+    </a>
+
+    {% if item.user_id == session['user_id'] %}
+        <a class = "btn btn-default" href = "{{url_for('editItem', item=item)}}">
+            <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span> 
+            Edit Item
+        </a>
+        <a class = "btn btn-default" href = "{{url_for('deleteItem', item=item)}}">
+            <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> 
+            Delete Item
+        </a>
+    {% endif %}
+{% endif %}
+	
+{% endblock %}

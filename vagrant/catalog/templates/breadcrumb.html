@@ -1,0 +1,13 @@
+<ol class="breadcrumb">
+    <li><a href="{{url_for('showCatalog')}}">
+        Catalog
+        </a>
+    </li>
+    <li><a href = "{{url_for('showCategory', category_name = category_name)}}">
+        {{ category_name }}
+        </a>
+    </li>
+    <li class="active">
+        {{ item.name }}
+    </li>
+</ol>
