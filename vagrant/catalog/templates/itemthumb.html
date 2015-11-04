@@ -2,7 +2,7 @@
       {% for item in items %}
       <div class="col-sm-6 col-md-4">
         <div class="thumbnail">
-          <img src={{item.picture}} height="242px" width="200px">
+          <img src={{item.picture}} style="max-width: 200px; width: 100%">
           <div class="caption">
               <a href = "{{url_for('showItem', category_name=item.category.name,item_name=item.name)}}">
                 {{item.name}}

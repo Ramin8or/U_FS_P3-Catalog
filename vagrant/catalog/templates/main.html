@@ -7,7 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
-
+<!-- Customization of Bootstrap styles -->
+<link rel="stylesheet" type="text/css" href="/static/bscustom.css">
 <title>Catalog Web App</title>
 <link href="/static/catstyle.css" rel="stylesheet">
 </head>
@@ -27,25 +28,25 @@
         </div>
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="cat-navbar" >
-            <ul class="nav navbar-nav">
-                <li>
-                    {%if 'username' not in session %}
-                    <a href="{{url_for('showLogin')}}">
-                    <span class="glyphicon glyphicon-user" aria-hidden="true"></span> 
-                    Login </a>
-                </li>
-                    {% else %}
+            <ul class="nav navbar-nav navbar-right">
+                {%if 'username' not in session %}
                     <li>
-                    <a href="{{url_for('disconnect')}}">
-                    <span class="glyphicon glyphicon-user" aria-hidden="true"></span> 
-                    Logout </a>
-                </li>
-                <li>
-                    <a href = "{{url_for('newItem')}}">
-                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 
-                    Add item</a>
-                    {% endif %}
-                </li>
+                        <a href="{{url_for('showLogin')}}">
+                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span> 
+                        Login </a>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{{url_for('disconnect')}}">
+                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span> 
+                        Logout </a>
+                    </li>
+                    <li>
+                        <a href = "{{url_for('newItem')}}">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 
+                        Post</a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
     </div>

@@ -33,11 +33,12 @@ db_session.commit()
 # Add a couple of items
 #TODO what if there is no file found
 lines = [x.rstrip() for x in open('item_list.txt')]
-i = 0
+i = 1
 for line in lines:
     # name, description, price, cat_id, picture
+    if i == 1:
+        continue;
     fields = line.split(';')
-    i = i + 1
     rand_id = random.randint(2,20)
     rand_price = random.randint(1,1500)
     rand_pic = random.randint(1,4)
@@ -47,6 +48,7 @@ for line in lines:
                 category_id=rand_id, 
                 picture=fields[4], user_id=1)
     db_session.add(item)
+    i = i + 1
 
 db_session.commit()
 
