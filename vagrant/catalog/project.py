@@ -213,17 +213,38 @@ def showItem(item_name, category_name):
     item = db_session.query(Item).filter_by(name=item_name).one()
     return render_template('item.html', item=item, category_name=category_name)
 
+# Edit an item using POST
+@app.route('/catalog/<item_name>/edit', methods=['GET', 'POST'])
+def editItem(item_name):
+    if 'username' not in login_session:
+        return redirect('/login')
+    item = db_session.query(Item).filter_by(name=item_name).one()
+    category = db_session.query(Category).filter_by(id=item.category_id).one()
+
+    if login_session['user_id'] != item.user_id:
+        return "<script>function myFunction() {alert('You are not authorized to edit menu items to this restaurant. Please create your own restaurant in order to edit items.');}</script><body onload='myFunction()''>"
+    if request.method == 'POST':
+        if request.form['name']:
+            item.name = request.form['name']
+        if request.form['description']:
+            item.description = request.form['description']
+        if request.form['price']:
+            item.price = request.form['price']
+        # TODO picture
+        db_session.add(item)
+        db_session.commit()
+        flash('Item Successfully Edited')
+        return redirect(url_for('showItem', 
+                                item_name=item_name, 
+                                category_name=category.name))
+    else:
+        return render_template('editItem.html', item=item)
+
 # Add a new item 
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
 def newItem():
     pass
     return "New"
-
-# Edit an item using POST for safety
-@app.route('/catalog/<item_name>/edit', methods=['GET', 'POST'])
-def editItem(item_name):
-    pass
-    return "Edit"
 
 # Delete an item using POST for safety
 @app.route('/catalog/<item_name>/delete', methods=['GET', 'POST'])

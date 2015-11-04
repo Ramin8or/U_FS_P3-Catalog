@@ -8,59 +8,24 @@
 <!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
 <!-- Customization of Bootstrap styles -->
-<link rel="stylesheet" type="text/css" href="/static/bscustom.css">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bscustom.css') }}">
+<!-- Catalog App related -->
 <title>Catalog Web App</title>
-<link href="/static/catstyle.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='catstyle.css') }}">
 </head>
 <body role="document">
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container-fluid">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" 
-                    data-target="#cat-navbar" aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="/">Catalog App</a>
-        </div>
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="cat-navbar" >
-            <ul class="nav navbar-nav navbar-right">
-                {%if 'username' not in session %}
-                    <li>
-                        <a href="{{url_for('showLogin')}}">
-                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span> 
-                        Login </a>
-                    </li>
-                {% else %}
-                    <li>
-                        <a href="{{url_for('disconnect')}}">
-                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span> 
-                        Logout </a>
-                    </li>
-                    <li>
-                        <a href = "{{url_for('newItem')}}">
-                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 
-                        Post</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-</nav>
+{% include "navbar.html" %}
+
 <div class="container">	
     {% with messages = get_flashed_messages() %}
     {% if messages %}
-    <div class="alert alert-info" role="alert">
-        <ul>
-        {% for message in messages %}
-            <li> <strong> {{ message }} </strong> </li>
-        {% endfor %}
-        </ul>
-    </div>
+        <div class="alert alert-info" role="alert">
+            <ul>
+            {% for message in messages %}
+                <li> <strong> {{ message }} </strong> </li>
+            {% endfor %}
+            </ul>
+        </div>
     {% endif %}
     {% endwith %}
 
