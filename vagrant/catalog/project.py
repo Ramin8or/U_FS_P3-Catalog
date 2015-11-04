@@ -224,8 +224,7 @@ def editItem(item_name):
     if login_session['user_id'] != item.user_id:
         return "<script>function myFunction() {alert('You are not authorized to edit menu items to this restaurant. Please create your own restaurant in order to edit items.');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
-        if request.form['name']:
-            item.name = request.form['name']
+        # Note since Name is used for routing, it cannot be changed
         if request.form['description']:
             item.description = request.form['description']
         if request.form['price']:
