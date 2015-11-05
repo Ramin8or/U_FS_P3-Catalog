@@ -15,6 +15,7 @@ import string
 import httplib2
 import json
 import requests
+import os
 
 app = Flask(__name__)
 
@@ -25,6 +26,11 @@ SHOW_LIMIT = 12 # Limit for number of recent tems shown in catalog
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 APPLICATION_NAME = "Catalog Application"
+
+# Settings for picture uploads
+UPLOAD_FOLDER = 'static/'
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Connect to Database and create database session
 engine = create_engine('sqlite:///catalog.db')
@@ -210,7 +216,11 @@ def showCategory(category_name):
 # Show item
 @app.route('/catalog/<category_name>/<item_name>')
 def showItem(item_name, category_name):
-    item = db_session.query(Item).filter_by(name=item_name).one()
+    try:
+        item = db_session.query(Item).filter_by(name=item_name).one()
+    except:
+        flash("Item by the name of %s does not exist!" % (item_name))
+        return redirect(url_for('/'))
     return render_template('item.html', item=item, category_name=category_name)
 
 # Edit an item using POST
@@ -218,18 +228,22 @@ def showItem(item_name, category_name):
 def editItem(item_name):
     if 'username' not in login_session:
         return redirect('/login')
-    item = db_session.query(Item).filter_by(name=item_name).one()
-    category = db_session.query(Category).filter_by(id=item.category_id).one()
+    try:
+        item = db_session.query(Item).filter_by(name=item_name).one()
+    except:
+        flash("Item by the name of %s does not exist!" % (item_name))
+        return redirect(url_for('/'))
+ 
+    category = item.category
 
     if login_session['user_id'] != item.user_id:
-        return "<script>function myFunction() {alert('You are not authorized to edit menu items to this restaurant. Please create your own restaurant in order to edit items.');}</script><body onload='myFunction()''>"
+        return "<script>function myFunction() {alert('You are not authorized to edit this item.');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
         # Note since Name is used for routing, it cannot be changed
         if request.form['description']:
             item.description = request.form['description']
         if request.form['price']:
             item.price = request.form['price']
-        # TODO picture
         db_session.add(item)
         db_session.commit()
         flash('Item Successfully Edited')
@@ -238,6 +252,33 @@ def editItem(item_name):
                                 category_name=category.name))
     else:
         return render_template('editItem.html', item=item)
+
+
+def savePicture(file, id):
+    '''
+    Save uploaded picture for an item into static folder.
+    Return the filename of the picture which will be id of item
+    with random string for uniqueness plus the extension.
+    '''
+
+    extension = file.filename.rsplit('.', 1)[1]
+    # Check for valid filename extension for saving a picture,
+    # else don't save.
+    if extension.lower() in ALLOWED_EXTENSIONS:
+        # Generate random variable for unique picture file name.
+        randString = ''.join(
+            random.choice(string.ascii_lowercase + string.digits) for
+            x in xrange(5))
+
+        # Create the filename.
+        fileName = str(id) + randString + '.' + extension
+        # Save the picture file to the server.
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], fileName))
+        return fileName
+
+    else:
+        flash("Could not save picture. Not a recognised image file.")
+        return ''
 
 # Add a new item 
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
@@ -267,6 +308,12 @@ def newItem():
                        user_id=login_session['user_id'])
         db_session.add(newItem)
         db_session.commit()
+
+        # If picture was chosen, save to static folder and update item.
+        if request.files['picture']:
+            newItem.picture = savePicture(request.files['picture'], newItem.id)
+            db_session.commit()
+
         flash('Successfully Created: %s' % (newItem.name))
         return redirect(url_for('showItem', 
                                 item_name=newItem.name, 

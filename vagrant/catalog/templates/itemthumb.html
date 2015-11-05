@@ -1,15 +1,20 @@
-    <div class="row">
-      {% for item in items %}
-      <div class="col-sm-6 col-md-4">
+<div class="row">
+    {% for item in items %}
+    <div class="col-sm-6 col-md-4">
         <div class="thumbnail">
-          <img src={{item.picture}} style="max-width: 200px; width: 100%">
-          <div class="caption">
-              <a href = "{{url_for('showItem', category_name=item.category.name,item_name=item.name)}}">
-                {{item.name}}
-              </a>
-            <p>${{item.price}}</p>
-          </div>
+            {%if item.picture == "" %}
+                <img src="{{ url_for('static', filename = 'noImage.jpg') }}" 
+                    ALT="Missing: {{ item.picture }}" style="max-width: 200px; width: 100%; max-height=242px; height=100% ">
+            {% else %}
+                <img src="{{ url_for('static', filename = item.picture) }}" ALT="{{item.picture}}" style="max-width: 200px; width: 100%">
+            {% endif %}</p>
+            <div class="caption">
+                <a href = "{{url_for('showItem', category_name=item.category.name,item_name=item.name)}}">
+                    {{item.name}}
+                </a>
+                <p>${{item.price}}</p>
+            </div>
         </div>
-      </div>
-      {% endfor %}
-    </div>  
+    </div>
+    {% endfor %}
+</div>  

@@ -12,44 +12,26 @@ db_session = DBSession()
 
 # Add categories from category_list.txt file
 categories = [x.rstrip() for x in open('category_list.txt')]
-cats_loaded = True
-DEFAULT_CAT = 'default_cat'
-DEFAULT_ITEM = DEFAULT_CAT+';default item;description;0;;'
-if not categories:
-    print "No categories found in category_list.txt file, using default category only."
-    categories = [DEFAULT_CAT]
-    cats_loaded = False
-
 for category_name in categories:
     category = Category(name=category_name)
     db_session.add(category)
-db_session.commit()
+    db_session.commit()
 
-# Create staff user
-staff_user = User(name="Staff", email="staff@thiscatalog.com", picture='')
+# Create staff user 
+staff_user = User(name="Staff", email="ramin@outlook.com", picture="") 
 db_session.add(staff_user)
 db_session.commit()
 
-# Add a couple of items
-#TODO what if there is no file found
-lines = [x.rstrip() for x in open('item_list.txt')]
-i = 1
-for line in lines:
-    # name, description, price, cat_id, picture
-    if i == 1:
-        continue;
-    fields = line.split(';')
+# Populate database with a few items
+for i in range(0,50):
     rand_id = random.randint(2,20)
-    rand_price = random.randint(1,1500)
-    rand_pic = random.randint(1,4)
-    item = Item(name=str(i)+fields[0], 
-                description=fields[1], 
+    rand_price = random.randint(1,500)
+    item = Item(name=str(i)+" Item for sale!", 
+                description="Cras justo odio, dapibus ac facilisis in, egestas eget quam.", 
                 price=str(rand_price)+'.00',
                 category_id=rand_id, 
-                picture=fields[4], user_id=1)
+                picture="", user_id=1)
     db_session.add(item)
-    i = i + 1
-
-db_session.commit()
+    db_session.commit()
 
 print "Added catalog categories and items."
