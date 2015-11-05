@@ -5,29 +5,38 @@
 </div>
 <div class="row banner menu">
     <div class="col-md-11 col-md-offset-1 padding-none">
-        <h3>Edit Item</h3>
+        <h3>New Item</h3>
     </div>
 </div>
 <div class="row">
     <div class="col-md-6 col-md-offset-1 padding-top">
         <form action="#" method = "post">
             <div class="form-group">
-                <p><b>Name: </b>{{ item.name }}</p>
+
+                <label for="name">Name:</label>
+                <input type ="text" maxlength="80" class="form-control" name="name" placeholder="Name of item (must be unique)">
+
                 <label for="description">Description:</label>
-                <textarea class="form-control" maxlength="250" rows="3" name="description">{{item.description}}</textarea>
+                <textarea class="form-control" maxlength="250" rows="3" name="description" placeholder="Description (max 250 chars)"></textarea>
+
+                <label for="category">Category:</label>
+                <select type ="text" maxlength="80" class="form-control" name="category" placeholder="Category">
+                {% for category in categories %}
+                    <option value="{{ category.name }}">{{ category.name }}</option>
+                {% endfor %}
+                </select>
 
                 <label for="price">Price:</label>
                 <div class="input-group">
                     <div class="input-group-addon">$</div>
-                    <input type ="text" maxlength="10" class="form-control" name="price" value="{{item.price}}">
+                    <input type ="text" maxlength="10" class="form-control" name="price" placeholder="0.00">
                 </div>
-
                 <p></p>
                 <button type="submit" class="btn btn-default" id="submit">
                     <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
                     Save
                 </button>
-                <a class="btn btn-default" href = "{{ url_for('showItem', category_name=item.category.name, item_name=item.name) }}">
+                <a class="btn btn-default" href = "{{ url_for('showCatalog') }}">
                     <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 
                     Cancel
                 </a>

@@ -242,8 +242,37 @@ def editItem(item_name):
 # Add a new item 
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
 def newItem():
-    pass
-    return "New"
+    if 'username' not in login_session:
+        return redirect('/login')
+    categories = db_session.query(Category).order_by(asc(Category.name))
+
+    if request.method == 'POST':
+        if request.form['name']:
+            item_name = request.form['name']
+        if request.form['description']:
+            item_desc = request.form['description']
+        if request.form['price']:
+            item_price = request.form['price']
+        if request.form['category']:
+            item_cat = request.form['category']
+        # TODO picture
+        # TODO validate form inputs
+        category = db_session.query(Category).filter_by(name=item_cat).one()
+
+        newItem = Item(name=item_name, 
+                       description=item_desc, 
+                       price=item_price,
+                       category_id=category.id, 
+                       picture=url_for('static', filename='camera.jpg'), 
+                       user_id=login_session['user_id'])
+        db_session.add(newItem)
+        db_session.commit()
+        flash('Successfully Created: %s' % (newItem.name))
+        return redirect(url_for('showItem', 
+                                item_name=newItem.name, 
+                                category_name=newItem.category.name))
+    else:
+        return render_template('newItem.html', categories=categories)
 
 # Delete an item using POST for safety
 @app.route('/catalog/<item_name>/delete', methods=['GET', 'POST'])
