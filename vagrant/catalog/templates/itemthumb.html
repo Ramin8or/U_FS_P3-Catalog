@@ -3,14 +3,13 @@
     <div class="col-sm-6 col-md-4">
         <div class="thumbnail">
             {%if item.picture == "" %}
-                <img src="{{ url_for('static', filename = 'noImage.jpg') }}" 
-                    ALT="Missing: {{ item.picture }}" style="max-width: 200px; width: 100%; max-height=242px; height=100% ">
+                <img src="{{ url_for('static', filename = 'nopix.png') }}" ALT="Missing: {{ item.picture }}" >
             {% else %}
-                <img src="{{ url_for('static', filename = item.picture) }}" ALT="{{item.picture}}" style="max-width: 200px; width: 100%">
+                <img src="{{ url_for('static', filename = item.picture) }}" ALT="{{ item.picture }}" >
             {% endif %}</p>
             <div class="caption">
-                <a href = "{{url_for('showItem', category_name=item.category.name,item_name=item.name)}}">
-                    {{item.name}}
+                <a href = "{{ url_for('showItem', category_name=item.category.name, item_name=item.name) }}">
+                    <h4>{{ item.name }}</h4>
                 </a>
                 <p>${{item.price}}</p>
             </div>

@@ -14,7 +14,7 @@ computers
 electronics
 farm+garden
 furniture
+general
 household
-music instr
 sporting
 video gaming

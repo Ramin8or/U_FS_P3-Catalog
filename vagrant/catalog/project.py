@@ -10,6 +10,8 @@ from database_setup import Base, Category, Item, User
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
+from werkzeug import secure_filename
+
 import random
 import string
 import httplib2
@@ -17,19 +19,19 @@ import json
 import requests
 import os
 
-app = Flask(__name__)
-
 # Constants
 ALL_CATEGORIES_ID = 1
 ALL_CATEGORIES = "All Categories"
+DEFAULT_CAT = "general"
 SHOW_LIMIT = 12 # Limit for number of recent tems shown in catalog
+APPLICATION_NAME = "Catalog Application"
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
-APPLICATION_NAME = "Catalog Application"
-
-# Settings for picture uploads
 UPLOAD_FOLDER = 'static/'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+
+# Start Flask
+app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Connect to Database and create database session
@@ -260,25 +262,17 @@ def savePicture(file, id):
     Return the filename of the picture which will be id of item
     with random string for uniqueness plus the extension.
     '''
-
+    # TODO Check file is not null
     extension = file.filename.rsplit('.', 1)[1]
-    # Check for valid filename extension for saving a picture,
-    # else don't save.
     if extension.lower() in ALLOWED_EXTENSIONS:
-        # Generate random variable for unique picture file name.
-        randString = ''.join(
-            random.choice(string.ascii_lowercase + string.digits) for
-            x in xrange(5))
-
-        # Create the filename.
-        fileName = str(id) + randString + '.' + extension
-        # Save the picture file to the server.
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], fileName))
-        return fileName
-
+        # Make filename unique and secure
+        filename = str(id)+"_"+secure_filename(file.filename)
+        # Save it in upload_folder
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return filename
     else:
-        flash("Could not save picture. Not a recognised image file.")
-        return ''
+        flash("Unable to save uploaded picture.")
+        return ""
 
 # Add a new item 
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
@@ -290,34 +284,44 @@ def newItem():
     if request.method == 'POST':
         if request.form['name']:
             item_name = request.form['name']
-        if request.form['description']:
-            item_desc = request.form['description']
-        if request.form['price']:
-            item_price = request.form['price']
         if request.form['category']:
             item_cat = request.form['category']
-        # TODO picture
-        # TODO validate form inputs
-        category = db_session.query(Category).filter_by(name=item_cat).one()
+        else:
+            item_cat = DEFAULT_CAT
+        if request.form['description']:
+            item_desc = request.form['description']
+        else:
+            item_desc = ""
+        if request.form['price']:
+            item_price = request.form['price']
+        else:
+            item_price = ""
 
-        newItem = Item(name=item_name, 
-                       description=item_desc, 
-                       price=item_price,
-                       category_id=category.id, 
-                       picture=url_for('static', filename='camera.jpg'), 
-                       user_id=login_session['user_id'])
-        db_session.add(newItem)
-        db_session.commit()
-
-        # If picture was chosen, save to static folder and update item.
-        if request.files['picture']:
-            newItem.picture = savePicture(request.files['picture'], newItem.id)
+        try:
+            category = db_session.query(Category).filter_by(name=item_cat).one()
+            newItem = Item(name=item_name, 
+                           description=item_desc, 
+                           price=item_price,
+                           category_id=category.id, 
+                           picture=url_for('static', filename='camera.jpg'), 
+                           user_id=login_session['user_id'])
+            db_session.add(newItem)
             db_session.commit()
 
-        flash('Successfully Created: %s' % (newItem.name))
-        return redirect(url_for('showItem', 
-                                item_name=newItem.name, 
-                                category_name=newItem.category.name))
+            # If picture, save with unique name to static folder and update item.
+            if request.files['picture']:
+                newItem.picture = savePicture(request.files['picture'], 
+                                              newItem.id)
+                db_session.commit()
+
+            flash('Successfully Created: %s' % (newItem.name))
+            return redirect(url_for('showItem', 
+                                    item_name=newItem.name, 
+                                    category_name=newItem.category.name))
+        except:
+            flash('Invalid input, could not create new item. Please specify a unique name, and use a category.')
+            return render_template('newItem.html', categories=categories)
+
     else:
         return render_template('newItem.html', categories=categories)
 
