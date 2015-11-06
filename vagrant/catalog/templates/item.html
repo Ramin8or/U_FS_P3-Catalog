@@ -5,7 +5,7 @@
 {% include "breadcrumb.html" %}
 
 {%if item.picture == "" %}
-    <img src="{{ url_for('static', filename = 'nopix.png') }}" ALT="Missing: {{ item.picture }}" style="max-width: 400px; width: 100%">
+    <img src="{{ url_for('static', filename = 'nopix.gif') }}" ALT="Missing: {{ item.picture }}" style="max-width: 400px; width: 100%">
 {% else %}
     <img src="{{ url_for('static', filename = item.picture) }}" ALT="{{item.picture}}" style="max-width: 400px; width: 100%">
 {% endif %}</p>

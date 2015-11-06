@@ -286,6 +286,8 @@ def newItem():
             item_name = request.form['name']
         if request.form['category']:
             item_cat = request.form['category']
+            if item_cat == ALL_CATEGORIES:
+                item_cat = DEFAULT_CAT
         else:
             item_cat = DEFAULT_CAT
         if request.form['description']:
@@ -303,7 +305,7 @@ def newItem():
                            description=item_desc, 
                            price=item_price,
                            category_id=category.id, 
-                           picture=url_for('static', filename='camera.jpg'), 
+                           picture="", 
                            user_id=login_session['user_id'])
             db_session.add(newItem)
             db_session.commit()

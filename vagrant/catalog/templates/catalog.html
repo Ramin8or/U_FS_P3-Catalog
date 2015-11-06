@@ -2,12 +2,11 @@
 {% block content %}
 
 <div class="row">
-{% include "catdrop.html" %}
-
-  <div class="col-xs-10">  
-  <h2>Recent Additions</h2>
-{% include "itemthumb.html" %}
-  </div>
+    {% include "catdrop.html" %}
+    <div class="col-md-10">  
+        <h3>Recent Additions</h3>
+        {% include "itemthumb.html" %}
+    </div>
 </div>
     
 {% endblock %}
