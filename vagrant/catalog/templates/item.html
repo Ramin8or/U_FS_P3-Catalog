@@ -10,10 +10,11 @@
     <img src="{{ url_for('static', filename = item.picture) }}" ALT="{{item.picture}}" style="max-width: 400px; width: 100%">
 {% endif %}</p>
 
-<p>{{item.name}}</p>
-<p><b>Description: </b>{{item.description}}</p>
-<p><b>Price: ${{item.price}}</b></p> 
-<p><b>Contact: </b><i>{{item.user.email}}</i></p>
+<p>{{ item.name }}</p>
+<p><b>Category: </b>{{ item.category.name }}</p>
+<p><b>Description: </b>{{ item.description }}</p>
+<p><b>Price: ${{ item.price }}</b></p> 
+<p><b>Contact: </b><i>{{ item.user.email }}</i></p>
 
 {%if 'username' in session %}
     <a class = "btn btn-default" href = "{{url_for('newItem')}}">

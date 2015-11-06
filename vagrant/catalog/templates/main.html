@@ -12,6 +12,10 @@
 <!-- Catalog App related -->
 <title>Catalog Web App</title>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='catstyle.css') }}">
+<link href="{{ url_for('catalogATOM') }}"
+      rel="alternate"
+      title="Recent Changes" 
+      type="application/atom+xml">
 </head>
 <body role="document">
 {% include "navbar.html" %}

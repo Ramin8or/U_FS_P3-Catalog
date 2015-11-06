@@ -11,13 +11,10 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
 from werkzeug import secure_filename
+from werkzeug.contrib.atom import AtomFeed
+from urlparse import urljoin
 
-import random
-import string
-import httplib2
-import json
-import requests
-import os
+import random, string, httplib2, json, requests, os, datetime
 
 # Constants
 ALL_CATEGORIES_ID = 1
@@ -222,7 +219,7 @@ def showItem(item_name, category_name):
         item = db_session.query(Item).filter_by(name=item_name).one()
     except:
         flash("Item by the name of %s does not exist!" % (item_name))
-        return redirect(url_for('/'))
+        return redirect(url_for('showCategory', category_name=category_name))        
     return render_template('item.html', item=item, category_name=category_name)
 
 # Edit an item using POST
@@ -330,8 +327,51 @@ def newItem():
 # Delete an item using POST for safety
 @app.route('/catalog/<item_name>/delete', methods=['GET', 'POST'])
 def deleteItem(item_name):
-    pass
-    return "Delete"
+    if 'username' not in login_session:
+        return redirect('/login')
+
+    try:
+        item = db_session.query(Item).filter_by(name=item_name).one()
+    except:
+        flash("Item by the name of %s does not exist!" % (item_name))
+        return redirect(url_for('/'))
+    if item.user_id != login_session['user_id']:
+        return "<script>function myFunction() {alert('You are not authorized to delete this item.');}</script><body onload='myFunction()''>"
+    if request.method == 'POST':
+        category_name = item.category.name
+        db_session.delete(item)
+        db_session.commit()
+        flash('%s Successfully Deleted' % item.name)
+        return redirect(url_for('showCategory', category_name=category_name))
+    else:
+        return render_template('deleteItem.html', item=item)
+
+# JSON Catalog
+@app.route('/catalog/JSON')
+def catalogJSON():
+    catalog = db_session.query(Category).all()
+    return jsonify(catalog=[r.serialize for r in catalog])
+
+# Helper function for catalogATOM
+def make_external(url):
+    return urljoin(request.url_root, url)
+
+# ATOM Catalog
+# Taken from http://flask.pocoo.org/snippets/10/
+@app.route('/catalog/ATOM')
+def catalogATOM():
+    feed = AtomFeed(APPLICATION_NAME, 
+                    feed_url=request.url, url=request.url_root)
+    items = db_session.query(Item).all()
+    for item in items:
+        feed.add(item.name, unicode(item.description),
+                 content_type='html',
+                 author=item.user.name,
+                 url=make_external(url_for('showItem', 
+                                    item_name=item.name, 
+                                    category_name=item.category.name)),
+                 updated=datetime.datetime.now())
+    return feed.get_response()
 
 # Main application
 if __name__ == '__main__':
