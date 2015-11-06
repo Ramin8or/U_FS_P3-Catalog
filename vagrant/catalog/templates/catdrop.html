@@ -1,11 +1,10 @@
 <div class="col-md-2">
-    <h3>Categories</h3>
-    <br>
+    <h2>Categories</h2>
     <div class="dropdown">
         <button class="btn btn-default dropdown-toggle" type="button" 
                 id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         {%if category != "" %}
-            {{category.name}}
+            {{ category.name }}
         {% else %}
             All Categories
         {% endif %}

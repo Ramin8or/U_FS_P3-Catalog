@@ -9,7 +9,7 @@
             {% endif %}</p>
             <div class="caption">
                 <a href = "{{ url_for('showItem', category_name=item.category.name, item_name=item.name) }}">
-                    <h4>{{ item.name }}</h4>
+                    {{ item.name }}
                 </a>
                 <p>${{ item.price }}</p>
             </div>

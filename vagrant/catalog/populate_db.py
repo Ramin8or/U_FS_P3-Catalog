@@ -23,15 +23,14 @@ db_session.add(staff_user)
 db_session.commit()
 
 # Populate database with a few items
-for i in range(1,11):
-    # Category 1 is "All Categories", category 9 is cars, and last category is 20 
-    rand_id = random.randint(2,20)      
-    rand_price = random.randint(1200,15000)
+for i in range(1,6):
+    # Category 1 is "All Categories", category 9 is cars+trucks
+    rand_price = random.randint(400,10000)
     item = Item(name=str(i)+" Priced to sell!", 
                 description="Cras justo odio, dapibus ac facilisis in, egestas eget quam.", 
-                price=str(rand_price)+'.00',
+                price=str(i)+','+str(i * 115)+'.00',
                 category_id=9,  
-                picture=str(i)+".jpg",
+                picture='car_'+str(i)+".jpg",
                 user_id=1)
     db_session.add(item)
 db_session.commit()
