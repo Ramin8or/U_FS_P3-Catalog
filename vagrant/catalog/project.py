@@ -232,11 +232,10 @@ def editItem(item_name):
     except:
         flash("Item by the name of %s does not exist!" % (item_name))
         return redirect(url_for('/'))
- 
-    category = item.category
 
     if login_session['user_id'] != item.user_id:
         return "<script>function myFunction() {alert('You are not authorized to edit this item.');}</script><body onload='myFunction()''>"
+
     if request.method == 'POST':
         # Note since Name is used for routing, it cannot be changed
         if request.form['description']:
@@ -245,10 +244,16 @@ def editItem(item_name):
             item.price = request.form['price']
         db_session.add(item)
         db_session.commit()
+        # If picture, save with unique name to static folder and update item.
+        if request.files['picture']:
+            item.picture = savePicture(request.files['picture'], 
+                                       item.id)
+            db_session.commit()
+
         flash('Item Successfully Edited')
         return redirect(url_for('showItem', 
                                 item_name=item_name, 
-                                category_name=category.name))
+                                category_name=item.category.name))
     else:
         return render_template('editItem.html', item=item)
 

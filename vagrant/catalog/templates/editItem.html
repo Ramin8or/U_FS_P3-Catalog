@@ -10,7 +10,7 @@
 </div>
 <div class="row">
     <div class="col-md-6 col-md-offset-1 padding-top">
-        <form action="#" method = "post">
+        <form action="#" method = "post" enctype = "multipart/form-data">
             <div class="form-group">
                 <p><b>Name: </b>{{ item.name }}</p>
 
@@ -20,8 +20,12 @@
                 <label for="price">Price:</label>
                 <div class="input-group">
                     <div class="input-group-addon">$</div>
-                    <input type ="text" maxlength="10" class="form-control" name="price" value="{{item.price}}">
+                    <input type ="text" maxlength="10" class="form-control" name="price" value="{{ item.price }}">
                 </div>
+
+                <br>    
+                <label for="picture">Use different picture:</label>
+                <input name = "picture" type= "file" >
 
                 <br><br>
                 <button type="submit" class="btn btn-default" id="submit">
