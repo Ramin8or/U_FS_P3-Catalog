@@ -14,24 +14,11 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="cat-navbar" >
             <ul class="nav navbar-nav navbar-right">
-            {%if 'username' not in session %}
                 <li>
-                    <a href="{{url_for('showLogin')}}">
-                    <span class="glyphicon glyphicon-user" aria-hidden="true"></span> 
-                    Login </a>
+                    <a href="{{url_for('showCatalog')}}" >
+                    <span class="glyphicon glyphicon-home" aria-hidden="true"></span> 
+                    Show Catalog</a>
                 </li>
-            {% else %}
-                <li>
-                    <a href="{{url_for('disconnect')}}">
-                    <span class="glyphicon glyphicon-user" aria-hidden="true"></span> 
-                    Logout </a>
-                </li>
-                <li>
-                    <a href = "{{url_for('newItem')}}">
-                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 
-                    Post</a>
-                </li>
-            {% endif %}
                 <li>
                     <a href="{{ url_for('catalogJSON') }}" title="Catalog JSON feed" 
                        type="application/json">
@@ -44,6 +31,24 @@
                     <span class="glyphicon glyphicon-export" aria-hidden="true"></span> 
                     ATOM</a>
                 </li>
+            {%if 'username' not in session %}
+                <li>
+                    <a href="{{url_for('showLogin')}}">
+                    <span class="glyphicon glyphicon-user" aria-hidden="true"></span> 
+                    Login </a>
+                </li>
+            {% else %}
+                <li>
+                    <a href = "{{url_for('newItem')}}">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 
+                    Post</a>
+                </li>
+                <li>
+                    <a href="{{url_for('disconnect')}}">
+                    <span class="glyphicon glyphicon-user" aria-hidden="true"></span> 
+                    Logout </a>
+                </li>
+            {% endif %}
             </ul>
         </div>
     </div>
