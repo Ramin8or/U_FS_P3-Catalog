@@ -17,17 +17,17 @@ from urlparse import urljoin
 import random, string, httplib2, json, requests, os, datetime
 
 # Constants
-ALL_CATEGORIES_ID = 1
-ALL_CATEGORIES = "All Categories"
-DEFAULT_CAT = "general"
-SHOW_LIMIT = 12 # Limit for number of recent tems shown in catalog
+ALL_CATEGORIES = "All Categories" # Used to show all categories
+ALL_CATEGORIES_ID = 1   # Category id for 'All Categories'
+DEFAULT_CAT = "general" # This category name is used if none is specified
+SHOW_LIMIT = 12         # Limit for number of recent tems shown in catalog
 APPLICATION_NAME = "Catalog Application"
-CLIENT_ID = json.loads(
-    open('client_secrets.json', 'r').read())['web']['client_id']
 UPLOAD_FOLDER = 'static/'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+CLIENT_ID = json.loads(
+    open('client_secrets.json', 'r').read())['web']['client_id']
 
-# Start Flask
+# Start Flask and set the upload folder location
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -37,17 +37,19 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 db_session = DBSession()
 
-# Create anti-forgery state token
 @app.route('/login')
 def showLogin():
+    ''' Create anti-forgery state token '''
+
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in xrange(32))
     login_session['state'] = state
     return render_template('login.html', STATE=state)
 
-# Handle connect
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    ''' Implemenation of Google connect '''
+
     # Validate state token
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -126,6 +128,8 @@ def gconnect():
 
 # User Helper Functions
 def createUser(login_session):
+    ''' Add a new user to the database '''
+
     newUser = User(name=login_session['username'], email=login_session[
                    'email'], picture=login_session['picture'])
     db_session.add(newUser)
@@ -134,19 +138,25 @@ def createUser(login_session):
     return user.id
 
 def getUserInfo(user_id):
+    ''' Get user from db given an id '''
     user = db_session.query(User).filter_by(id=user_id).one()
     return user
 
 def getUserID(email):
+    ''' Get user from db given an email '''
     try:
         user = db_session.query(User).filter_by(email=email).one()
         return user.id
     except:
         return None
 
-# Handle Disconnect - Revoke a current user's token and reset their login_session
 @app.route('/gdisconnect')
 def gdisconnect():
+    ''' 
+    Implementation of Google disconnect:
+    Revokes a current user's token and reset their login_session
+    '''
+
     # Only disconnect a connected user.
     credentials = login_session.get('credentials')
     if credentials is None:
@@ -166,9 +176,10 @@ def gdisconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
 
-# Disconnect based on provider
 @app.route('/disconnect')
 def disconnect():
+    ''' Disconnect from provider (currently only Google is a provider) '''
+
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
             gdisconnect()
@@ -185,10 +196,11 @@ def disconnect():
         flash("You were not logged in")
         return redirect(url_for('showCatalog'))
 
-# Show catalog
 @app.route('/')
 @app.route('/catalog')
 def showCatalog():
+    ''' Display the catalog '''
+
     categories = db_session.query(Category).order_by(asc(Category.name))
     all_cat = categories.filter_by(name=ALL_CATEGORIES).one()
     items = db_session.query(
@@ -197,9 +209,10 @@ def showCatalog():
                             categories=categories, 
                             category=all_cat, items=items)
 
-# Show items for selected category
 @app.route('/catalog/<category_name>/')
 def showCategory(category_name):
+    ''' Show items for selected category '''
+
     categories = db_session.query(Category).order_by(asc(Category.name))
     category = categories.filter_by(name=category_name).one()
     if category.id == ALL_CATEGORIES_ID:
@@ -212,9 +225,10 @@ def showCategory(category_name):
                             category=category, items=items, 
                             count=count)
 
-# Show item
 @app.route('/catalog/<category_name>/<item_name>')
 def showItem(item_name, category_name):
+    ''' Show item given a name '''
+
     try:
         item = db_session.query(Item).filter_by(name=item_name).one()
     except:
@@ -222,9 +236,10 @@ def showItem(item_name, category_name):
         return redirect(url_for('showCategory', category_name=category_name))        
     return render_template('item.html', item=item, category_name=category_name)
 
-# Edit an item using POST
 @app.route('/catalog/<item_name>/edit', methods=['GET', 'POST'])
 def editItem(item_name):
+    ''' Edit an item '''
+
     if 'username' not in login_session:
         return redirect('/login')
     try:
@@ -260,11 +275,10 @@ def editItem(item_name):
 
 def savePicture(file, id):
     '''
-    Save uploaded picture for an item into static folder.
-    Return the filename of the picture which will be id of item
-    with random string for uniqueness plus the extension.
+    Save uploaded picture for an item into static folder and
+    return the filename of the picture.
     '''
-    # TODO Check file is not null
+
     extension = file.filename.rsplit('.', 1)[1]
     if extension.lower() in ALLOWED_EXTENSIONS:
         # Make filename unique and secure
@@ -276,9 +290,10 @@ def savePicture(file, id):
         flash("Unable to save uploaded picture.")
         return ""
 
-# Add a new item 
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
 def newItem():
+    ''' Add a new item '''
+
     if 'username' not in login_session:
         return redirect('/login')
     categories = db_session.query(Category).order_by(asc(Category.name))
@@ -329,9 +344,10 @@ def newItem():
     else:
         return render_template('newItem.html', categories=categories)
 
-# Delete an item using POST for safety
 @app.route('/catalog/<item_name>/delete', methods=['GET', 'POST'])
 def deleteItem(item_name):
+    ''' Delete an item using POST '''
+
     if 'username' not in login_session:
         return redirect('/login')
 
@@ -351,20 +367,30 @@ def deleteItem(item_name):
     else:
         return render_template('deleteItem.html', item=item)
 
-# JSON Catalog
 @app.route('/catalog/JSON')
 def catalogJSON():
-    catalog = db_session.query(Category).all()
-    return jsonify(catalog=[r.serialize for r in catalog])
+    ''' JSON endpoint for the catalog. '''
+    categories = db_session.query(Category).all()
+    serializedCategories = []
+    for cat in categories:
+        newCategory = cat.serialize
+        items = db_session.query(Item).filter_by(category_id=cat.id).all()
+        serializedItems = []
+        for item in items:
+            serializedItems.append(item.serialize)
+        newCategory['items'] = serializedItems
+        serializedCategories.append(newCategory)
+    return jsonify(categories=[serializedCategories])
 
 # Helper function for catalogATOM
 def make_external(url):
     return urljoin(request.url_root, url)
 
-# ATOM Catalog
 # Taken from http://flask.pocoo.org/snippets/10/
 @app.route('/catalog/ATOM')
 def catalogATOM():
+    ''' ATOM endpoint for the catalog. '''
+
     feed = AtomFeed(APPLICATION_NAME, 
                     feed_url=request.url, url=request.url_root)
     items = db_session.query(Item).all()

@@ -21,13 +21,12 @@ class Category(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(STRING_SIZE), nullable=False)
 
-    # TODO: why is this and the one below necessary? Why not user?
     @property
     def serialize(self):
         """Return object data in easily serializeable format"""
         return {
-            'name': self.name,
             'id': self.id,
+            'name': self.name,
         }
 
 class Item(Base):
@@ -47,10 +46,12 @@ class Item(Base):
     def serialize(self):
         """Return object data in easily serializeable format"""
         return {
+            'id': self.id,
             'name': self.name,
             'description': self.description,
-            'id': self.id,
             'price': self.price,
+            'picture': self.picture,
+            'category_id': self.category_id,
         }
 
 engine = create_engine('sqlite:///catalog.db')
