@@ -2,6 +2,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
+from sqlalchemy import UniqueConstraint
 
 STRING_SIZE = 256
 
@@ -19,7 +20,8 @@ class Category(Base):
     __tablename__ = 'category'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(STRING_SIZE), nullable=False)
+    # Category name is unique since it's used for routing
+    name = Column(String(STRING_SIZE), nullable=False, unique=True)
 
     @property
     def serialize(self):
@@ -32,8 +34,9 @@ class Category(Base):
 class Item(Base):
     __tablename__ = 'item'
 
-    name = Column(String(STRING_SIZE), nullable=False)
     id = Column(Integer, primary_key=True)
+    # Item name is unique since it's used for routing
+    name = Column(String(STRING_SIZE), nullable=False, unique=True)
     description = Column(String(STRING_SIZE))
     price = Column(String(16))
     picture = Column(String(STRING_SIZE))

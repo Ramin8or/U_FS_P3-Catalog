@@ -27,9 +27,11 @@ ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 
-# Start Flask and set the upload folder location
+# Start Flask 
 app = Flask(__name__)
+# Set upload folder and max content size for image uploads
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 # Connect to Database and create database session
 engine = create_engine('sqlite:///catalog.db')
@@ -339,6 +341,7 @@ def newItem():
                                     category_name=newItem.category.name))
         except:
             flash('Invalid input, could not create new item. Please specify a unique name, and use a category.')
+            db_session.rollback()
             return render_template('newItem.html', categories=categories)
 
     else:
