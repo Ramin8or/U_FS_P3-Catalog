@@ -22,7 +22,7 @@ Here's what you should do to run the project:
 10. Access and test the Catalog App by visiting http://localhost:8000 locally
 
 # Project design
-This application relies on Flask to create a web server for a catalog application. Declarative SqlAlchemy in Flask is used which is similar to Django. 
+This application relies on Flask to create a web server for a catalog application. Declarative SqlAlchemy in Flask is used which is similar to Django. OAuth 2 is used to provide authentication using Google accounts.
 
 The database model is represented in database_setup.py. This is were the tables for Category, Item, and User are defined in an Object Relation Mapping using SqlAlchemy in Flask. Populate_db.py is used to populate the database with sample items and categories. The controller is represented in the project.py file. The routing mechanism is used heavily to control the flow of the application.
 
