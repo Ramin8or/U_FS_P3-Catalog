@@ -2,7 +2,6 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
-from sqlalchemy import UniqueConstraint
 
 STRING_SIZE = 256
 
@@ -20,8 +19,7 @@ class Category(Base):
     __tablename__ = 'category'
 
     id = Column(Integer, primary_key=True)
-    # Category name is unique since it's used for routing
-    name = Column(String(STRING_SIZE), nullable=False, unique=True)
+    name = Column(String(STRING_SIZE), nullable=False)
 
     @property
     def serialize(self):
@@ -34,9 +32,8 @@ class Category(Base):
 class Item(Base):
     __tablename__ = 'item'
 
+    name = Column(String(STRING_SIZE), nullable=False)
     id = Column(Integer, primary_key=True)
-    # Item name is unique since it's used for routing
-    name = Column(String(STRING_SIZE), nullable=False, unique=True)
     description = Column(String(STRING_SIZE))
     price = Column(String(16))
     picture = Column(String(STRING_SIZE))
@@ -57,5 +54,5 @@ class Item(Base):
             'category_id': self.category_id,
         }
 
-engine = create_engine('sqlite:///catalog.db')
+engine = create_engine('postgresql://catalog:catalog@localhost/catalog')
 Base.metadata.create_all(engine)

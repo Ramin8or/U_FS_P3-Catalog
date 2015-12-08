@@ -5,7 +5,7 @@ import random
 
 # Bind the engine to the metadata of the Base class so that the
 # declaratives can be accessed through a DBSession instance
-engine = create_engine('sqlite:///catalog.db')
+engine = create_engine('postgresql://catalog:catalog@localhost/catalog')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 db_session = DBSession()
