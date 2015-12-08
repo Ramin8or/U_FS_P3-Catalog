@@ -16,10 +16,16 @@ Here's what you should do to run the project:
 4. Launch the Vagrant VM (vagrant up)
 5. Connect to the VM (vagrant ssh)
 6. Go to the shared project location (cd /vagrant/catalog)
-7. Create the catalog database (python database_setup.py)
-8. Populate the database with sample data (python populate_db.py)
-9. Run the Catalog web server (python project.py)
-10. Access and test the Catalog App by visiting http://localhost:8000 locally
+7. Install the following to be able to resize uploaded images:
+```
+sudo apt-get build-dep python-imaging
+sudo apt-get install libjpeg8 libjpeg62-dev libfreetype6 libfreetype6-dev
+sudo pip install python-resize-image
+```
+8. Create the catalog database (python database_setup.py)
+9. Populate the database with sample data (python populate_db.py)
+10. Run the Catalog web server (python project.py)
+11. Access and test the Catalog App by visiting http://localhost:8000 locally
 
 # Project design
 This application relies on Flask to create a web server for a catalog application. Declarative SqlAlchemy in Flask is used which is similar to Django. OAuth 2 is used to provide authentication using Google accounts.

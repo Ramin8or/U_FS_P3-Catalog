@@ -10,6 +10,13 @@ from database_setup import Base, Category, Item, User
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
+# TODO Need the following installed:
+# sudo apt-get build-dep python-imaging
+# sudo apt-get install libjpeg8 libjpeg62-dev libfreetype6 libfreetype6-dev
+# sudo pip install python-resize-image
+from PIL import Image
+from resizeimage import resizeimage
+
 from werkzeug import secure_filename
 from werkzeug.contrib.atom import AtomFeed
 from urlparse import urljoin
@@ -277,21 +284,34 @@ def editItem(item_name):
 
 def savePicture(file, id):
     '''
-    Save uploaded picture for an item into static folder and
+    Resize and save auploaded picture for an item into static folder and
     return the filename of the picture.
     '''
 
     extension = file.filename.rsplit('.', 1)[1]
-    if extension.lower() in ALLOWED_EXTENSIONS:
-        # Make filename unique and secure
-        filename = str(id)+"_"+secure_filename(file.filename)
-        # Save it in upload_folder
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return filename
-    else:
+    if extension.lower() not in ALLOWED_EXTENSIONS:
         flash("Unable to save uploaded picture.")
         return ""
 
+    # Make filename unique and secure
+    filename = str(id)+"_"+secure_filename(file.filename)
+    uploaded_file = os.path.join(app.config['UPLOAD_FOLDER'],"u_"+filename)
+    # First save the original uploaded picture in upload_folder
+    file.save(uploaded_file)
+    try:
+        # Try to resize the picture
+        fd_img = open(uploaded_file, 'r')
+        img = Image.open(fd_img)
+        img = resizeimage.resize_contain(img, [400, 300])
+        img.save(os.path.join(app.config['UPLOAD_FOLDER'],filename), img.format)
+        fd_img.close()
+        os.remove(uploaded_file)
+    except:
+        # Could not resize, just use the uploaded file instead
+        os.rename(uploaded_file, os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    return filename
+
+ 
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
 def newItem():
     ''' Add a new item '''
