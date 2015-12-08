@@ -10,10 +10,6 @@ from database_setup import Base, Category, Item, User
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 
-# TODO Need the following installed:
-# sudo apt-get build-dep python-imaging
-# sudo apt-get install libjpeg8 libjpeg62-dev libfreetype6 libfreetype6-dev
-# sudo pip install python-resize-image
 from PIL import Image
 from resizeimage import resizeimage
 
