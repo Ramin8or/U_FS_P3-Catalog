@@ -25,19 +25,32 @@ ALL_CATEGORIES_ID = 1   # Category id for 'All Categories'
 DEFAULT_CAT = "general" # This category name is used if none is specified
 SHOW_LIMIT = 12         # Limit for number of recent tems shown in catalog
 APPLICATION_NAME = "Catalog Application"
-UPLOAD_FOLDER = 'static/'
+UPLOAD_FOLDER = "static/"
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+
+CLIENT_SECRET_FILE = "client_secrets.json" 
+APACHE_ROOT = "/var/www/catalog/catalog/"
+if __name__ != '__main__':
+    # When running under Apache use absolute paths
+    UPLOAD_FOLDER = APACHE_ROOT + UPLOAD_FOLDER
+    CLIENT_SECRET_FILE = APACHE_ROOT + CLIENT_SECRET_FILE 
+
 CLIENT_ID = json.loads(
-    open('client_secrets.json', 'r').read())['web']['client_id']
+    open(CLIENT_SECRET_FILE, 'r').read())['web']['client_id']
 
 # Start Flask 
 app = Flask(__name__)
 # Set upload folder and max content size for image uploads
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024 # Limit each upload to 32 MB
 
-# Connect to Database and create database session
-engine = create_engine('sqlite:///catalog.db')
+# Connect to the appropriate database and create database session
+engine = None
+if __name__ == '__main__':
+    engine = create_engine('sqlite:///catalog.db')
+else:
+    engine = create_engine('postgresql://catalog:catalog@localhost/catalog')
+
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 db_session = DBSession()
@@ -64,7 +77,7 @@ def gconnect():
     code = request.data
     try:
         # Upgrade the authorization code into a credentials object
-        oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
+        oauth_flow = flow_from_clientsecrets(CLIENT_SECRET_FILE, scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
     except FlowExchangeError:
@@ -423,8 +436,9 @@ def catalogATOM():
                  updated=datetime.datetime.now())
     return feed.get_response()
 
-# Main application
+app.secret_key = 'super_secret_key'
+app.debug = True
+
+# Main application running locally
 if __name__ == '__main__':
-    app.secret_key = 'super_secret_key'
-    app.debug = True
     app.run(host='0.0.0.0', port=8000)
