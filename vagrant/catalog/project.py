@@ -14,8 +14,6 @@ from PIL import Image
 from resizeimage import resizeimage
 
 from werkzeug import secure_filename
-from werkzeug.contrib.atom import AtomFeed
-from urlparse import urljoin
 
 import random, string, httplib2, json, requests, os, datetime
 
@@ -399,42 +397,6 @@ def deleteItem(item_name):
     else:
         return render_template('deleteItem.html', item=item)
 
-@app.route('/catalog/JSON')
-def catalogJSON():
-    ''' JSON endpoint for the catalog. '''
-    categories = db_session.query(Category).all()
-    serializedCategories = []
-    for cat in categories:
-        newCategory = cat.serialize
-        items = db_session.query(Item).filter_by(category_id=cat.id).all()
-        serializedItems = []
-        for item in items:
-            serializedItems.append(item.serialize)
-        newCategory['items'] = serializedItems
-        serializedCategories.append(newCategory)
-    return jsonify(categories=[serializedCategories])
-
-# Helper function for catalogATOM
-def make_external(url):
-    return urljoin(request.url_root, url)
-
-# Taken from http://flask.pocoo.org/snippets/10/
-@app.route('/catalog/ATOM')
-def catalogATOM():
-    ''' ATOM endpoint for the catalog. '''
-
-    feed = AtomFeed(APPLICATION_NAME, 
-                    feed_url=request.url, url=request.url_root)
-    items = db_session.query(Item).all()
-    for item in items:
-        feed.add(item.name, unicode(item.description),
-                 content_type='html',
-                 author=item.user.name,
-                 url=make_external(url_for('showItem', 
-                                    item_name=item.name, 
-                                    category_name=item.category.name)),
-                 updated=datetime.datetime.now())
-    return feed.get_response()
 
 app.secret_key = 'super_secret_key'
 app.debug = True

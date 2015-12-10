@@ -19,18 +19,6 @@
                     <span class="glyphicon glyphicon-home" aria-hidden="true"></span> 
                     Show Catalog</a>
                 </li>
-                <li>
-                    <a href="{{ url_for('catalogJSON') }}" title="Catalog JSON feed" 
-                       type="application/json">
-                    <span class="glyphicon glyphicon-flash" aria-hidden="true"></span> 
-                    JSON</a>
-                </li>
-                <li>
-                    <a href="{{ url_for('catalogATOM') }}" title="Catalog ATOM feed" 
-                       type="application/atom+xml">
-                    <span class="glyphicon glyphicon-export" aria-hidden="true"></span> 
-                    ATOM</a>
-                </li>
             {%if 'username' not in session %}
                 <li>
                     <a href="{{url_for('showLogin')}}">
