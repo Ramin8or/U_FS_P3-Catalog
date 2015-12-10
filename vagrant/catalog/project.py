@@ -17,8 +17,6 @@ from werkzeug import secure_filename
 
 import random, string, httplib2, json, requests, os, datetime
 
-import logging
-
 # Constants
 ALL_CATEGORIES = "All Categories" # Used to show all categories
 ALL_CATEGORIES_ID = 1   # Category id for 'All Categories'
@@ -27,7 +25,6 @@ SHOW_LIMIT = 12         # Limit for number of recent tems shown in catalog
 APPLICATION_NAME = "Catalog Application"
 UPLOAD_FOLDER = "static/"
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
-APP_LOG_FILE = "static/application.log"
 CLIENT_SECRET_FILE = "client_secrets.json" 
 APACHE_ROOT = "/var/www/catalog/catalog/"
 
@@ -35,7 +32,6 @@ if __name__ != '__main__':
     # When running under Apache use absolute paths
     UPLOAD_FOLDER = APACHE_ROOT + UPLOAD_FOLDER
     CLIENT_SECRET_FILE = APACHE_ROOT + CLIENT_SECRET_FILE 
-    APP_LOG_FILE = APACHE_ROOT + APP_LOG_FILE
 
 CLIENT_ID = json.loads(
     open(CLIENT_SECRET_FILE, 'r').read())['web']['client_id']
@@ -45,7 +41,6 @@ app = Flask(__name__)
 # Set upload folder and max content size for image uploads
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024 # Limit each upload to 32 MB
-logging.basicConfig(filename=APP_LOG_FILE, level=logging.DEBUG)
 
 # Connect to the appropriate database and create database session
 engine = None
@@ -331,13 +326,9 @@ def newItem():
     if 'username' not in login_session:
         return redirect('/login')
     categories = db_session.query(Category).order_by(asc(Category.name))
-    logfile    = logging.getLogger('file')
-    logfile.debug("newItem")
-    
     if request.method == 'POST':
         if request.form['name']:
             item_name = request.form['name']
-            logfile.debug("newItem POST %s" % (item_name))
         if request.form['category']:
             item_cat = request.form['category']
             if item_cat == ALL_CATEGORIES:
@@ -363,21 +354,18 @@ def newItem():
                            user_id=login_session['user_id'])
             db_session.add(newItem)
             db_session.commit()
-            logfile.debug("newItem Before savePicture")
 
             # If picture, save with unique name to static folder and update item.
             if request.files['picture']:
                 newItem.picture = savePicture(request.files['picture'], 
                                               newItem.id)
                 db_session.commit()
-                logfile.debug("newItem did savePicture")
 
             flash('Successfully Created: %s' % (newItem.name))
             return redirect(url_for('showItem', 
                                     item_name=newItem.name, 
                                     category_name=newItem.category.name))
         except:
-            logfile.debug("newItem Exception")
             flash('Invalid input, could not create new item. Please specify a unique name, and use a category.')
             db_session.rollback()
             return render_template('newItem.html', categories=categories)
