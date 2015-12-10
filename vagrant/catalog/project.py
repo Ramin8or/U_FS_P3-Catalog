@@ -17,6 +17,8 @@ from werkzeug import secure_filename
 
 import random, string, httplib2, json, requests, os, datetime
 
+import logging
+
 # Constants
 ALL_CATEGORIES = "All Categories" # Used to show all categories
 ALL_CATEGORIES_ID = 1   # Category id for 'All Categories'
@@ -35,6 +37,13 @@ if __name__ != '__main__':
 
 CLIENT_ID = json.loads(
     open(CLIENT_SECRET_FILE, 'r').read())['web']['client_id']
+
+logger = logging.getLogger('app')
+log_handler = logging.FileHandler(UPLOAD_FOLDER+"application.log")
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+log_handler.setFormatter(formatter)
+logger.addHandler(log_handler)
+logger.setLevel(logging.DEBUG)
 
 # Start Flask 
 app = Flask(__name__)
@@ -322,11 +331,13 @@ def savePicture(file, id):
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
 def newItem():
     ''' Add a new item '''
-
+    logger.debug("newItem called with method: " + request.method)
     if 'username' not in login_session:
+        logger.debug("newItem redirect to login")
         return redirect('/login')
-    categories = db_session.query(Category).order_by(asc(Category.name))
+
     if request.method == 'POST':
+        logger.debug("POST: " + request.form['name'])
         if request.form['name']:
             item_name = request.form['name']
         if request.form['category']:
@@ -345,6 +356,9 @@ def newItem():
             item_price = ""
 
         try:
+            logger.debug("POST: querying categories")
+            categories = db_session.query(Category).order_by(asc(Category.name))
+
             category = db_session.query(Category).filter_by(name=item_cat).one()
             newItem = Item(name=item_name, 
                            description=item_desc, 
@@ -354,6 +368,7 @@ def newItem():
                            user_id=login_session['user_id'])
             db_session.add(newItem)
             db_session.commit()
+            logger.debug("POST: about to savePicture")
 
             # If picture, save with unique name to static folder and update item.
             if request.files['picture']:
@@ -366,11 +381,15 @@ def newItem():
                                     item_name=newItem.name, 
                                     category_name=newItem.category.name))
         except:
+            logger.debug("POST: exception")
             flash('Invalid input, could not create new item. Please specify a unique name, and use a category.')
             db_session.rollback()
             return render_template('newItem.html', categories=categories)
 
     else:
+        logger.debug("GET: querying categories")
+        categories = db_session.query(Category).order_by(asc(Category.name))
+        logger.debug("GET: returning")
         return render_template('newItem.html', categories=categories)
 
 @app.route('/catalog/<item_name>/delete', methods=['GET', 'POST'])
