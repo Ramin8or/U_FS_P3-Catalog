@@ -300,7 +300,7 @@ def editItem(item_name):
 
 def savePicture(file, id):
     '''
-    Resize and save auploaded picture for an item into static folder and
+    Resize and save an uploaded picture for an item into static folder and
     return the filename of the picture.
     '''
 
@@ -327,33 +327,49 @@ def savePicture(file, id):
         os.rename(uploaded_file, os.path.join(app.config['UPLOAD_FOLDER'], filename))
     return filename
 
+@app.route('/catalog/newItem/test', methods=['GET', 'POST'])
+def newItemTest():
+    ''' Test Adding a new item '''
+    if request.method == 'POST':
+        return "Picture" if request.files['picture'] else "No pictures"
+    else:
+        return render_template('newItemTest.html')
+
  
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
 def newItem():
     ''' Add a new item '''
     logger.debug("newItem called with method: " + request.method)
+    if request.method == 'POST':
+        logger.debug("POST: " + request.form['name'])
+        if request.files['picture']:
+            logger.debug("POST: has picture")
+
     if 'username' not in login_session:
         logger.debug("newItem redirect to login")
         return redirect('/login')
 
     if request.method == 'POST':
+        item_name = ""
+        item_desc = ""
+        item_cat = DEFAULT_CAT
+        item_price = ""
+
         logger.debug("POST: " + request.form['name'])
+
         if request.form['name']:
             item_name = request.form['name']
+        
         if request.form['category']:
             item_cat = request.form['category']
             if item_cat == ALL_CATEGORIES:
                 item_cat = DEFAULT_CAT
-        else:
-            item_cat = DEFAULT_CAT
+
         if request.form['description']:
             item_desc = request.form['description']
-        else:
-            item_desc = ""
+
         if request.form['price']:
             item_price = request.form['price']
-        else:
-            item_price = ""
 
         try:
             logger.debug("POST: querying categories")

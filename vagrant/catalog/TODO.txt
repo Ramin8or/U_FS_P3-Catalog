@@ -1,0 +1,16 @@
+Reliability:
+	- Flask picture upload (test under Chrome on iOS)
+	- Switch OAuth2 sign in over to use Google Identity Toolkit
+	- Better logging on the server
+
+New Features:
+	- Sign in UX based on Google Identity Toolkit
+	- Add Facebook, Yahoo sign in
+	- URL for items based on ID rather than Name
+	- Post to force Login if not signed in
+	- Full text search in database
+	- Add additional fields such as Location etc.
+	- Support for expiration date
+	- View of my older posts and reposting them
+	- Instrumentation
+	

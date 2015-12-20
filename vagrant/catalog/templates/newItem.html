@@ -12,38 +12,42 @@
     <div class="col-md-6 col-md-offset-1 padding-top">
         <form action="#" method = "post" enctype = "multipart/form-data">
             <div class="form-group">
-
                 <label for="name">Name:</label>
                 <input type ="text" maxlength="80" class="form-control" name="name" placeholder="Name of item (must be unique)">
-
+            </div>
+            <div class="form-group">
                 <label for="description">Description:</label>
                 <textarea class="form-control" maxlength="250" rows="3" name="description" placeholder="Description (max 250 chars)"></textarea>
-
+            </div>
+            <div class="form-group">
                 <label for="category">Category:</label>
                 <select type ="text" maxlength="80" class="form-control" name="category" placeholder="Select a category">
                 {% for category in categories %}
                     <option value="{{ category.name }}">{{ category.name }}</option>
                 {% endfor %}
                 </select>
-
+            </div>
+            <div class="form-group">
                 <label for="price">Price:</label>
                 <div class="input-group">
                     <div class="input-group-addon">$</div>
                     <input type ="text" maxlength="10" class="form-control" name="price" placeholder="0.00">
                 </div>
+            </div>
+            <div class="form-group">
                 <br>    
                 <label for="picture">Upload Picture:</label>
                 <input name = "picture" type= "file">
                 <br><br>
-                <button type="submit" class="btn btn-default" id="submit">
-                    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-                    Save
-                </button>
-                <a class="btn btn-default" href = "{{ url_for('showCatalog') }}">
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 
-                    Cancel
-                </a>
             </div>
+            <button type="submit" class="btn btn-default" id="submit">
+                <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                Save
+            </button>
+            <a class="btn btn-default" href = "{{ url_for('showCatalog') }}">
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 
+                Cancel
+            </a>
         </form>
     </div>
 </div>
