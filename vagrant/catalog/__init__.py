@@ -14,10 +14,10 @@ from PIL import Image
 from resizeimage import resizeimage
 
 from werkzeug import secure_filename
-from werkzeug.contrib.atom import AtomFeed
-from urlparse import urljoin
 
 import random, string, httplib2, json, requests, os, datetime
+
+import logging
 
 # Constants
 ALL_CATEGORIES = "All Categories" # Used to show all categories
@@ -25,17 +25,39 @@ ALL_CATEGORIES_ID = 1   # Category id for 'All Categories'
 DEFAULT_CAT = "general" # This category name is used if none is specified
 SHOW_LIMIT = 12         # Limit for number of recent tems shown in catalog
 APPLICATION_NAME = "Catalog Application"
-UPLOAD_FOLDER = '/var/www/catalog/catalog/static/'
+UPLOAD_FOLDER = "static/"
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+CLIENT_SECRET_FILE = "client_secrets.json" 
+APACHE_ROOT = "/var/www/catalog/catalog/"
+
+if __name__ != '__main__':
+    # When running under Apache use absolute paths
+    UPLOAD_FOLDER = APACHE_ROOT + UPLOAD_FOLDER
+    CLIENT_SECRET_FILE = APACHE_ROOT + CLIENT_SECRET_FILE 
+
 CLIENT_ID = json.loads(
-    open('/var/www/catalog/catalog/client_secrets.json', 'r').read())['web']['client_id']
+    open(CLIENT_SECRET_FILE, 'r').read())['web']['client_id']
 
-# Start Flask and set the upload folder location
+logger = logging.getLogger('app')
+log_handler = logging.FileHandler(UPLOAD_FOLDER+"application.log")
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+log_handler.setFormatter(formatter)
+logger.addHandler(log_handler)
+logger.setLevel(logging.DEBUG)
+
+# Start Flask 
 app = Flask(__name__)
+# Set upload folder and max content size for image uploads
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024 # Limit each upload to 32 MB
 
-# Connect to Database and create database session
-engine = create_engine('postgresql://catalog:catalog@localhost/catalog')
+# Connect to the appropriate database and create database session
+engine = None
+if __name__ == '__main__':
+    engine = create_engine('sqlite:///catalog.db')
+else:
+    engine = create_engine('postgresql://catalog:catalog@localhost/catalog')
+
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 db_session = DBSession()
@@ -62,7 +84,7 @@ def gconnect():
     code = request.data
     try:
         # Upgrade the authorization code into a credentials object
-        oauth_flow = flow_from_clientsecrets('/var/www/catalog/catalog/client_secrets.json', scope='')
+        oauth_flow = flow_from_clientsecrets(CLIENT_SECRET_FILE, scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
     except FlowExchangeError:
@@ -278,7 +300,7 @@ def editItem(item_name):
 
 def savePicture(file, id):
     '''
-    Resize and save auploaded picture for an item into static folder and
+    Resize and save an uploaded picture for an item into static folder and
     return the filename of the picture.
     '''
 
@@ -305,34 +327,54 @@ def savePicture(file, id):
         os.rename(uploaded_file, os.path.join(app.config['UPLOAD_FOLDER'], filename))
     return filename
 
+@app.route('/catalog/newItem/test', methods=['GET', 'POST'])
+def newItemTest():
+    ''' Test Adding a new item '''
+    if request.method == 'POST':
+        return "Dont know"
+    else:
+        return render_template('newItemTest.html')
 
+ 
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
 def newItem():
     ''' Add a new item '''
+    logger.debug("newItem called with method: " + request.method)
+    if request.method == 'POST':
+        logger.debug("POST: " + request.form['name'])
+        if request.files['picture']:
+            logger.debug("POST: has picture")
 
     if 'username' not in login_session:
+        logger.debug("newItem redirect to login")
         return redirect('/login')
-    categories = db_session.query(Category).order_by(asc(Category.name))
 
     if request.method == 'POST':
+        item_name = ""
+        item_desc = ""
+        item_cat = DEFAULT_CAT
+        item_price = ""
+
+        logger.debug("POST: " + request.form['name'])
+
         if request.form['name']:
             item_name = request.form['name']
+        
         if request.form['category']:
             item_cat = request.form['category']
             if item_cat == ALL_CATEGORIES:
                 item_cat = DEFAULT_CAT
-        else:
-            item_cat = DEFAULT_CAT
+
         if request.form['description']:
             item_desc = request.form['description']
-        else:
-            item_desc = ""
+
         if request.form['price']:
             item_price = request.form['price']
-        else:
-            item_price = ""
 
         try:
+            logger.debug("POST: querying categories")
+            categories = db_session.query(Category).order_by(asc(Category.name))
+
             category = db_session.query(Category).filter_by(name=item_cat).one()
             newItem = Item(name=item_name, 
                            description=item_desc, 
@@ -342,6 +384,7 @@ def newItem():
                            user_id=login_session['user_id'])
             db_session.add(newItem)
             db_session.commit()
+            logger.debug("POST: about to savePicture")
 
             # If picture, save with unique name to static folder and update item.
             if request.files['picture']:
@@ -354,10 +397,15 @@ def newItem():
                                     item_name=newItem.name, 
                                     category_name=newItem.category.name))
         except:
+            logger.debug("POST: exception")
             flash('Invalid input, could not create new item. Please specify a unique name, and use a category.')
+            db_session.rollback()
             return render_template('newItem.html', categories=categories)
 
     else:
+        logger.debug("GET: querying categories")
+        categories = db_session.query(Category).order_by(asc(Category.name))
+        logger.debug("GET: returning")
         return render_template('newItem.html', categories=categories)
 
 @app.route('/catalog/<item_name>/delete', methods=['GET', 'POST'])
@@ -383,44 +431,10 @@ def deleteItem(item_name):
     else:
         return render_template('deleteItem.html', item=item)
 
-@app.route('/catalog/JSON')
-def catalogJSON():
-    ''' JSON endpoint for the catalog. '''
-    categories = db_session.query(Category).all()
-    serializedCategories = []
-    for cat in categories:
-        newCategory = cat.serialize
-        items = db_session.query(Item).filter_by(category_id=cat.id).all()
-        serializedItems = []
-        for item in items:
-            serializedItems.append(item.serialize)
-        newCategory['items'] = serializedItems
-        serializedCategories.append(newCategory)
-    return jsonify(categories=[serializedCategories])
 
-# Helper function for catalogATOM
-def make_external(url):
-    return urljoin(request.url_root, url)
-
-# Taken from http://flask.pocoo.org/snippets/10/
-@app.route('/catalog/ATOM')
-def catalogATOM():
-    ''' ATOM endpoint for the catalog. '''
-
-    feed = AtomFeed(APPLICATION_NAME, 
-                    feed_url=request.url, url=request.url_root)
-    items = db_session.query(Item).all()
-    for item in items:
-        feed.add(item.name, unicode(item.description),
-                 content_type='html',
-                 author=item.user.name,
-                 url=make_external(url_for('showItem', 
-                                    item_name=item.name, 
-                                    category_name=item.category.name)),
-                 updated=datetime.datetime.now())
-    return feed.get_response()
-
-# Main application
 app.secret_key = 'super_secret_key'
-app.debug = True
+app.debug = False
+# Main application running locally
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000)
 
